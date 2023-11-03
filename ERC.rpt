@@ -1,0 +1,107 @@
+ERC report (03/11/2023 14:06:17, Encoding UTF8)
+
+***** Sheet /
+[net_not_bus_member]: Net /A4 is graphically connected to bus /<NO NET> but is not a member of that bus
+    ; Severity: warning
+    @(203.2000 mm, 53.3400 mm): Bus to Wire Entry
+    @(203.2000 mm, 53.3400 mm): Vertical Bus, length 6.3500 mm
+[net_not_bus_member]: Net /A0 is graphically connected to bus /<NO NET> but is not a member of that bus
+    ; Severity: warning
+    @(203.2000 mm, 59.6900 mm): Bus to Wire Entry
+    @(203.2000 mm, 53.3400 mm): Vertical Bus, length 6.3500 mm
+[power_pin_not_driven]: Input Power pin not driven by any Output Power pins
+    ; Severity: error
+    @(226.0600 mm, 53.3400 mm): Symbol U4 Pin 8 [GND, Power input, Line]
+[net_not_bus_member]: Net /D7 is graphically connected to bus /<NO NET> but is not a member of that bus
+    ; Severity: warning
+    @(227.3300 mm, 107.9500 mm): Bus to Wire Entry
+    @(227.3300 mm, 105.4100 mm): Vertical Bus, length 2.5400 mm
+[net_not_bus_member]: Net /D0 is graphically connected to bus /<NO NET> but is not a member of that bus
+    ; Severity: warning
+    @(227.3300 mm, 90.1700 mm): Bus to Wire Entry
+    @(227.3300 mm, 90.1700 mm): Vertical Bus, length 2.5400 mm
+[net_not_bus_member]: Net /D5 is graphically connected to bus /<NO NET> but is not a member of that bus
+    ; Severity: warning
+    @(200.6600 mm, 80.0100 mm): Bus to Wire Entry
+    @(203.2000 mm, 80.0100 mm): Vertical Bus, length 2.5400 mm
+[net_not_bus_member]: Net /D3 is graphically connected to bus /<NO NET> but is not a member of that bus
+    ; Severity: warning
+    @(227.3300 mm, 97.7900 mm): Bus to Wire Entry
+    @(227.3300 mm, 97.7900 mm): Vertical Bus, length 2.5400 mm
+[net_not_bus_member]: Net /D4 is graphically connected to bus /<NO NET> but is not a member of that bus
+    ; Severity: warning
+    @(227.3300 mm, 100.3300 mm): Bus to Wire Entry
+    @(227.3300 mm, 100.3300 mm): Vertical Bus, length 2.5400 mm
+[net_not_bus_member]: Net /D6 is graphically connected to bus /<NO NET> but is not a member of that bus
+    ; Severity: warning
+    @(227.3300 mm, 105.4100 mm): Bus to Wire Entry
+    @(227.3300 mm, 105.4100 mm): Vertical Bus, length 2.5400 mm
+[net_not_bus_member]: Net /D1 is graphically connected to bus /<NO NET> but is not a member of that bus
+    ; Severity: warning
+    @(227.3300 mm, 92.7100 mm): Bus to Wire Entry
+    @(227.3300 mm, 92.7100 mm): Vertical Bus, length 2.5400 mm
+[net_not_bus_member]: Net /D2 is graphically connected to bus /<NO NET> but is not a member of that bus
+    ; Severity: warning
+    @(227.3300 mm, 95.2500 mm): Bus to Wire Entry
+    @(227.3300 mm, 92.7100 mm): Vertical Bus, length 2.5400 mm
+[net_not_bus_member]: Net /A8 is graphically connected to bus /<NO NET> but is not a member of that bus
+    ; Severity: warning
+    @(168.9100 mm, 85.0900 mm): Bus to Wire Entry
+    @(168.9100 mm, 85.0900 mm): Vertical Bus, length 2.5400 mm
+[net_not_bus_member]: Net /A11 is graphically connected to bus /<NO NET> but is not a member of that bus
+    ; Severity: warning
+    @(129.5400 mm, 93.9800 mm): Bus to Wire Entry
+    @(132.0800 mm, 93.9800 mm): Vertical Bus, length 2.5400 mm
+[net_not_bus_member]: Net /A12 is graphically connected to bus /<NO NET> but is not a member of that bus
+    ; Severity: warning
+    @(129.5400 mm, 96.5200 mm): Bus to Wire Entry
+    @(132.0800 mm, 99.0600 mm): Vertical Bus, length 2.5400 mm
+[net_not_bus_member]: Net /A7 is graphically connected to bus /<NO NET> but is not a member of that bus
+    ; Severity: warning
+    @(129.5400 mm, 83.8200 mm): Bus to Wire Entry
+    @(132.0800 mm, 83.8200 mm): Vertical Bus, length 2.5400 mm
+[net_not_bus_member]: Net /A5 is graphically connected to bus /<NO NET> but is not a member of that bus
+    ; Severity: warning
+    @(168.9100 mm, 77.4700 mm): Bus to Wire Entry
+    @(168.9100 mm, 74.9300 mm): Vertical Bus, length 2.5400 mm
+[net_not_bus_member]: Net /A1 is graphically connected to bus /<NO NET> but is not a member of that bus
+    ; Severity: warning
+    @(168.9100 mm, 67.3100 mm): Bus to Wire Entry
+    @(168.9100 mm, 67.3100 mm): Vertical Bus, length 2.5400 mm
+[power_pin_not_driven]: Input Power pin not driven by any Output Power pins
+    ; Severity: error
+    @(142.2400 mm, 142.2400 mm): Symbol U6 Pin 28 [VCC, Power input, Line]
+[net_not_bus_member]: Net /A6 is graphically connected to bus /<NO NET> but is not a member of that bus
+    ; Severity: warning
+    @(125.7300 mm, 160.0200 mm): Bus to Wire Entry
+    @(125.7300 mm, 160.0200 mm): Vertical Bus, length 2.5400 mm
+[net_not_bus_member]: Net /A9 is graphically connected to bus /<NO NET> but is not a member of that bus
+    ; Severity: warning
+    @(125.7300 mm, 167.6400 mm): Bus to Wire Entry
+    @(125.7300 mm, 165.1000 mm): Vertical Bus, length 2.5400 mm
+[net_not_bus_member]: Net /A13 is graphically connected to bus /<NO NET> but is not a member of that bus
+    ; Severity: warning
+    @(129.5400 mm, 99.0600 mm): Bus to Wire Entry
+    @(132.0800 mm, 101.6000 mm): Vertical Bus, length 2.5400 mm
+[net_not_bus_member]: Net /A14 is graphically connected to bus /<NO NET> but is not a member of that bus
+    ; Severity: warning
+    @(129.5400 mm, 101.6000 mm): Bus to Wire Entry
+    @(132.0800 mm, 104.1400 mm): Vertical Bus, length 2.5400 mm
+[net_not_bus_member]: Net /A15 is graphically connected to bus /<NO NET> but is not a member of that bus
+    ; Severity: warning
+    @(129.5400 mm, 104.1400 mm): Bus to Wire Entry
+    @(135.8900 mm, 106.6800 mm): Horizontal Bus, length 3.8100 mm
+[net_not_bus_member]: Net /A10 is graphically connected to bus /<NO NET> but is not a member of that bus
+    ; Severity: warning
+    @(125.7300 mm, 170.1800 mm): Bus to Wire Entry
+    @(125.7300 mm, 167.6400 mm): Vertical Bus, length 2.5400 mm
+[net_not_bus_member]: Net /A3 is graphically connected to bus /<NO NET> but is not a member of that bus
+    ; Severity: warning
+    @(125.7300 mm, 152.4000 mm): Bus to Wire Entry
+    @(125.7300 mm, 152.4000 mm): Vertical Bus, length 2.5400 mm
+[net_not_bus_member]: Net /A2 is graphically connected to bus /<NO NET> but is not a member of that bus
+    ; Severity: warning
+    @(125.7300 mm, 149.8600 mm): Bus to Wire Entry
+    @(125.7300 mm, 147.3200 mm): Vertical Bus, length 2.5400 mm
+
+ ** ERC messages: 26  Errors 2  Warnings 24
