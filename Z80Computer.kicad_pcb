@@ -3556,6 +3556,9 @@
     (stroke (width 0.1) (type default)) (layer "Edge.Cuts") (tstamp 88340c11-444c-499a-a97b-92bef27b206b))
   (gr_line (start 55.88 162.56) (end 58.42 162.56)
     (stroke (width 0.1) (type default)) (layer "Edge.Cuts") (tstamp f7fd3e70-21ce-455f-8a15-d6c62cc29323))
+  (gr_text "Itch.io  https://adrianpilko.itch.io\nGithub   https://github.com/AdrianPilko\nYoutube  @byteforever7829" (at 165.1 40.64) (layer "Edge.Cuts") (tstamp 4259842f-1e26-497a-913d-63f7ac7fcd8d)
+    (effects (font (size 1 1) (thickness 0.15)) (justify left bottom))
+  )
 
   (segment (start 53.34 40.64) (end 58.42 40.64) (width 0.25) (layer "F.Cu") (net 1) (tstamp a8151bc6-82f6-4ce1-9dd5-5e037bec5bf1))
   (segment (start 58.42 35.56) (end 58.42 40.64) (width 0.25) (layer "B.Cu") (net 1) (tstamp 238b4fd9-f419-4dbe-b6d8-fbda4f9df986))
