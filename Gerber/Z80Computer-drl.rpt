@@ -1,5 +1,5 @@
 Drill report for Z80Computer.kicad_pcb
-Created on 04/11/2023 10:41:26
+Created on 04/11/2023 10:57:55
 
 Copper Layer Stackup:
     =============================================================
@@ -10,7 +10,7 @@ Copper Layer Stackup:
 Drill file 'Z80Computer-PTH.drl' contains
     plated through holes:
     =============================================================
-    T1  0.400mm  0.0157"  (23 holes)
+    T1  0.400mm  0.0157"  (46 holes)
     T2  0.600mm  0.0236"  (4 holes)
     T3  0.700mm  0.0276"  (20 holes)
     T4  0.800mm  0.0315"  (234 holes)
@@ -22,7 +22,7 @@ Drill file 'Z80Computer-PTH.drl' contains
     T10  1.700mm  0.0669"  (4 holes)
     T11  3.000mm  0.1181"  (4 holes)
 
-    Total plated holes count 332
+    Total plated holes count 355
 
 
 Drill file 'Z80Computer-NPTH.drl' contains

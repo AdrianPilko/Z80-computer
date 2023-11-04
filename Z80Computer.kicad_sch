@@ -7072,7 +7072,7 @@
     (property "Value" "Z80CPU" (at 111.4141 59.69 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
-    (property "Footprint" "Package_DIP:DIP-40_W25.4mm" (at 109.22 86.36 0)
+    (property "Footprint" "Package_DIP:DIP-40_W15.24mm" (at 109.22 86.36 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Datasheet" "www.zilog.com/manage_directlink.php?filepath=docs/z80/um0080" (at 109.22 86.36 0)
