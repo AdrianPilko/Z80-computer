@@ -1,2 +1,2 @@
 # Z80 computer
- A modular z80 computer using a common "backplane"
+ A minimal z80 computer with keypad input and 2line dot matrix display output
