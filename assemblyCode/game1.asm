@@ -1,4 +1,14 @@
 
+;; simple dodge game - Adrian Pilkington December 2023
+;; this is written to run on the single board homebrew computer described 
+;; by the schematics in this repo.
+
+;; Dodge: you play the star running endlessless through space 
+;; your mission is to avoid the oncoming galaxy's which threaten to absorb you
+;; todo this press abnd hold any key on the keypad to switch rows to row 2
+;; 
+
+
 ;;; memory model:
 ;;; 0x0000 to 7fff      - ROM
 ;;; 0x8000 to to 0xffff - RAM
@@ -20,26 +30,68 @@
     
     call initialiseLCD
     call setLCDRow2
-    ld a, 0
-    ld b, 0
-mainLoop:     
-    ;; delay loop with heart beat to see what's happening on lcd    
-    ;ld b, 0    ; only use row 1
+    xor a
+    ld (starPosRow), a
+    ld (starPosCol), a
+    ld (galaxyPosRow), a
+    
+    ld a, DISPLAY_COLS-1    
+    ld (galaxyPosCol), a
+
+mainLoop:      
+        
+    ld a, (starPosRow)
+    ld b, a
+    ld a, (starPosCol)    
     call moveLCDCursorLocation
     call displayStar    
-    ;ld b, 0    ; only use row 1
+    ; store the star position
+    ld (starPosCol), a
+    ld a, b
+    ld (starPosRow), a    
+    ; now display the enemy "galaxy" 
+        
+    ld a, (galaxyPosRow)
+    ld b, a 
+    ld a, (galaxyPosCol)
+    call moveLCDCursorLocation
+    call displayGalaxy    
+    
+    ld a, (starPosRow)          
+    ld b, a
+    ld a, (starPosCol)
     call moveLCDCursorLocation
     call delaySome
     call displayBlank    
-    push af
+
+    ld a, (galaxyPosRow)
+    ld b, a 
+    ld a, (galaxyPosCol)
+    call moveLCDCursorLocation
+    call displayBlank    
+
+    ld a, (galaxyPosCol)
+    dec a
+    cp 0
+    jp nz, skipResetGalaxyPos
+    ld a, DISPLAY_COLS-1
+skipResetGalaxyPos:        
+    ld (galaxyPosCol), a
+    ;ld a, b
+    ;ld (galaxyPosRow), a    
+    
     call keyboardScanInit
-    pop af
-    inc a    
+    ld a, b
+    ld (starPosRow), a
+    
+
+    ld a, (starPosCol)
+    inc a       
     cp DISPLAY_COLS
     jp nz, skipZeroA
-    ld a, 0    
+    xor a   
 skipZeroA:    
-
+    ld (starPosCol), a
     jp mainLoop   
     
     
@@ -125,7 +177,14 @@ displayBlank
     out (lcdRegisterSelectData), a
     pop af  
     ret
+displayGalaxy    
  
+    push af
+    call waitLCD
+    ld a, '#'
+    out (lcdRegisterSelectData), a
+    pop af    
+    ret
   
     
 ;;; "generic" display code
@@ -252,6 +311,14 @@ InitCommandList:
     
 ;;; ram variables    
     .org RAM_START
+starPosRow
+    .db $00
+starPosCol
+    .db $00   
+galaxyPosRow
+    .db $00
+galaxyPosCol
+    .db $00     
     
 to_print:
     .dw $0000
