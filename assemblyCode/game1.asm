@@ -382,7 +382,9 @@ galaxyPosCol
 alternateLoopUpdateFlag
     .db $00     
 seedValue
-    .db $13
+    .db $00
+score
+    .db $00
 to_print:
     .dw $0000
 #END
