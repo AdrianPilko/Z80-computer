@@ -31,6 +31,7 @@
     call initialiseLCD
     call setLCDRow2
     xor a
+    ld (score), a
     ld (starPosRow), a
     ld (starPosCol), a
     ld (galaxyPosRow), a
@@ -97,6 +98,10 @@ mainLoop:
     rrca         ; Rotate A right through carry (pseudo-random due to varying timing)
     and 1
     ld (galaxyPosRow), a            
+    
+    ld a, (score)
+    inc a
+    ld (score),a
     jp skipResetGalaxyPos
 skipAlternateLoopThisTime:
     ld a, 1
@@ -163,9 +168,12 @@ gameOverMessageLoop:
     cp $ff
     jp z, lastInstruction
     out (lcdRegisterSelectData), a
-    inc hl
-    jp gameOverMessageLoop    
+    inc hl    
+    jp gameOverMessageLoop        
 lastInstruction
+    call setLCDRow2
+    ld a, (score)
+    call hexprint8
     halt
     
 checkCollision
