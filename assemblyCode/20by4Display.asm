@@ -36,13 +36,18 @@
     ld a, DISPLAY_COLS-1    
     ld (galaxyPosCol), a
     
+    xor a
+    ld (rowcount), a
+    ld (rowcount+1), a
 
-    ;ld a, (RowAddresses+1)    ; 0 = row 1, 3 = row 4
-    ld a, (RowAddresses+2)    ; 0 = row 1, 3 = row 4
+;selectRow
+;    ld de, (rowcount)
+;    ld hl, RowAddresses    ; 0 = row 1, 3 = row 4
+;    add hl, de
+;    ld a, (hl)
+    ld a, (RowAddresses)
     call setLCDRow_a
-startOutChars:
-    ;ld hl, RowMessages+5
-    ld hl, RowMessages+10
+    ld hl, RowMessages
 WriteRow:         
     call waitLCD 
     ld a, (hl)
@@ -51,10 +56,63 @@ WriteRow:
     out (lcdRegisterSelectData), a
     inc hl
     jr WriteRow
+afterWriteRow 
 
-afterWriteRow   
-    jr afterWriteRow     ; effectively halt
 
+    ld a, (RowAddresses+1)
+    call setLCDRow_a
+    ld hl, RowMessages+5
+WriteRow2:         
+    call waitLCD 
+    ld a, (hl)
+    cp $ff
+    jp z, afterWriteRow2
+    out (lcdRegisterSelectData), a
+    inc hl
+    jr WriteRow2
+afterWriteRow2
+
+    ld a, (RowAddresses+2)
+    call setLCDRow_a
+    ld hl, RowMessages+10
+WriteRow3:         
+    call waitLCD 
+    ld a, (hl)
+    cp $ff
+    jp z, afterWriteRow3
+    out (lcdRegisterSelectData), a
+    inc hl
+    jr WriteRow3
+afterWriteRow3
+
+
+    ld a, (RowAddresses+3)
+    call setLCDRow_a
+    ld hl, RowMessages+15
+WriteRow4:         
+    call waitLCD 
+    ld a, (hl)
+    cp $ff
+    jp z, afterWriteRow4
+    out (lcdRegisterSelectData), a
+    inc hl
+    jr WriteRow4
+afterWriteRow4
+
+        
+;    call delaySome  
+;    call delaySome  
+;    ld hl, (rowcount)
+;    inc hl
+;    ld a, l
+;    cp 4
+;    jp z, endAndInfLoop
+;    ld (rowcount), hl
+;    jr selectRow
+    
+
+endAndInfLoop 
+    jr endAndInfLoop  
 
 preMainLoop:    
     ld a, (RowAddresses+1)    ; 0 = row 1, 3 = row 4
@@ -346,7 +404,9 @@ RowMessages    ; each row message is 5 bytes
     .db "2222",$ff        
     .db "3333",$ff    
     .db "4444",$ff    
-    
+
+rowcount
+    .dw $0000
 ;;; ram variables    
     .org RAM_START
 starPosRow
