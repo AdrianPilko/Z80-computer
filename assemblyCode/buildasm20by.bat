@@ -4,8 +4,10 @@ del *.lst
 del *.sym
 del *.hex
 del *.obj
+del *.bin
 
 set "base_filename=20by4Display"
 
 call zxasm %base_filename%
 call python convertOBJToBIN.py ./20by4Display.obj
+pause

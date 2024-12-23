@@ -1,12 +1,9 @@
 
-;; simple dodge game - Adrian Pilkington December 2023
+;; Adrian Pilkington December 2023
 ;; this is written to run on the single board homebrew computer described 
 ;; by the schematics in this repo.
 
-;; Dodge: you play the star running endlessless through space 
-;; your mission is to avoid the oncoming galaxy's which threaten to absorb you
-;; todo this press abnd hold any key on the keypad to switch rows to row 2
-;; 
+
 
 
 ;;; memory model:
@@ -29,7 +26,7 @@
     ld  sp , STACK_BOTTOM 
     
     call initialiseLCD
-    call setLCDRow1
+
     xor a
     ld (score), a
     ld (starPosRow), a
@@ -40,13 +37,28 @@
     ld (galaxyPosCol), a
     
 
-mainLoop:      
-        
-    call displayStar       
-   
-    call delaySome
-    call delaySome
-    
+    ld a, (RowAddresses+1)    ; 0 = row 1, 3 = row 4
+    call setLCDRow_a
+startOutChars:
+    ld hl, RowMessages+5
+WriteRow:         
+    call waitLCD 
+    ld a, (hl)
+    cp $ff
+    jp z, afterWriteRow
+    out (lcdRegisterSelectData), a
+    inc hl
+    jr WriteRow
+
+afterWriteRow
+
+
+preMainLoop:    
+    ld a, (RowAddresses+1)    ; 0 = row 1, 3 = row 4
+    call setLCDRow_a
+mainLoop:           
+    call displayStar          
+    call delaySome   
        
     ld a, (starPosCol)   
     inc a           
@@ -154,7 +166,6 @@ skipAddhex40:
     ret 
 
 displayStar
-
     push af
     call waitLCD
     ld a, '*'
@@ -188,41 +199,22 @@ clearDisplay:
 	ld (lcdRegisterSelectCommand), a
     pop af
 	ret 
-;Row 1 (line 1): Start address = 0x00
-;Row 2 (line 2): Start address = 0x14
-;Row 3 (line 3): Start address = 0x28
-;Row 4 (line 4): Start address = 0x3C   
-setLCDRow1:
+
+;Row	DDRAM Start Address	Set DDRAM Command (Hex)
+;1	0x00	0x80
+;2	0x40	0xC0
+;3	0x14	0x94
+;4	0x54	0xD4
+ 
+setLCDRow_a:   ; set a to the row address
     push af
     call waitLCD
-    ld a, $00         ; Set DDRAM address to start of the first row
-    out (lcdRegisterSelectCommand), a     ; Send command to LCD         
     pop af
+    ld d, $80       ; ddram command 
+    or d    
+    out (lcdRegisterSelectCommand), a     ; Send command to LCD         
     ret 
 
-setLCDRow2:
-    push af
-    call waitLCD
-    ld a, $14        ; Set DDRAM address 
-    out (lcdRegisterSelectCommand), a     ; Send command to LCD         
-    pop af
-    ret   
-
-setLCDRow3:
-    push af
-    call waitLCD
-    ld a, $28        ; Set DDRAM address 
-    out (lcdRegisterSelectCommand), a     ; Send command to LCD         
-    pop af
-    ret   
-    
-setLCDRow4:
-    push af
-    call waitLCD
-    ld a, $3c       ; Set DDRAM address 
-    out (lcdRegisterSelectCommand), a     ; Send command to LCD         
-    pop af
-    ret       
 
 moveCursorToPostion:  ;; b store the cursor position 
 	call waitLCD
@@ -320,9 +312,38 @@ ConvertToASCII_ret:
 ;;; rom "constants"
 
 InitCommandList:
+;            4 line mode
+;            |       clear display
+;            |       |   cursor auto increment
+;            |       |   |
     .db $38,$0e,$01,$06,$ff
+;   .db $38,$09,$0e,$01,$06,$ff
+        
+
+
+;Step	Command (Hex)	Description
+;1	0x33	Initialize in 8-bit mode (repeated to ensure).
+;2	0x32	Switch to 4-bit mode.
+;3	0x28	Function set: 4-bit mode, 2 lines, 5x8 dots.
+;4	0x0C	Display ON, Cursor OFF, Blink OFF.
+;5	0x01	Clear display.
+;6	0x06	Entry mode: Increment, No shift.        
+;    .db $33, $33, $32, $28, $01, $06
+
+RowAddresses:
+    .db $00,$40,$14,$54
+
 GameOverMessage:
     .db "Game Over!!!",$ff    
+BootMessage:
+    .db "Z80 byteForever",$ff    
+
+RowMessages    ; each row message is 5 bytes
+    .db "1111",$ff    
+    .db "2222",$ff        
+    .db "3333",$ff    
+    .db "4444",$ff    
+    
 ;;; ram variables    
     .org RAM_START
 starPosRow
