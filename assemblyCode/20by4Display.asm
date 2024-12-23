@@ -37,10 +37,12 @@
     ld (galaxyPosCol), a
     
 
-    ld a, (RowAddresses+1)    ; 0 = row 1, 3 = row 4
+    ;ld a, (RowAddresses+1)    ; 0 = row 1, 3 = row 4
+    ld a, (RowAddresses+2)    ; 0 = row 1, 3 = row 4
     call setLCDRow_a
 startOutChars:
-    ld hl, RowMessages+5
+    ;ld hl, RowMessages+5
+    ld hl, RowMessages+10
 WriteRow:         
     call waitLCD 
     ld a, (hl)
@@ -50,7 +52,8 @@ WriteRow:
     inc hl
     jr WriteRow
 
-afterWriteRow
+afterWriteRow   
+    jr afterWriteRow     ; effectively halt
 
 
 preMainLoop:    
@@ -58,7 +61,7 @@ preMainLoop:
     call setLCDRow_a
 mainLoop:           
     call displayStar          
-    call delaySome   
+    call delaySome       
        
     ld a, (starPosCol)   
     inc a           
