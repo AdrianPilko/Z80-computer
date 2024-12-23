@@ -61,7 +61,7 @@ afterWriteRow
 
     ld a, (RowAddresses+1)
     call setLCDRow_a
-    ld hl, RowMessages+5
+    ld hl, RowMessages+21
 WriteRow2:         
     call waitLCD 
     ld a, (hl)
@@ -74,7 +74,7 @@ afterWriteRow2
 
     ld a, (RowAddresses+2)
     call setLCDRow_a
-    ld hl, RowMessages+10
+    ld hl, RowMessages+42
 WriteRow3:         
     call waitLCD 
     ld a, (hl)
@@ -88,7 +88,7 @@ afterWriteRow3
 
     ld a, (RowAddresses+3)
     call setLCDRow_a
-    ld hl, RowMessages+15
+    ld hl, RowMessages+63
 WriteRow4:         
     call waitLCD 
     ld a, (hl)
@@ -400,10 +400,10 @@ BootMessage:
     .db "Z80 byteForever",$ff    
 
 RowMessages    ; each row message is 5 bytes
-    .db "1111",$ff    
-    .db "2222",$ff        
-    .db "3333",$ff    
-    .db "4444",$ff    
+    .db "Hello world111111111",$ff    
+    .db "ByteForEver222222222",$ff        
+    .db "33333333333333333333",$ff    
+    .db "44444444444444444444",$ff    
 
 rowcount
     .dw $0000
