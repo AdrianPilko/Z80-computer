@@ -6,7 +6,7 @@ del *.hex
 del *.obj
 del *.bin
 
-set "base_filename=20by4Display"
+set "base_filename=20by4Monitor"
 
 call zxasm %base_filename%
 call python convertOBJToBIN.py ./%base_filename%.obj
