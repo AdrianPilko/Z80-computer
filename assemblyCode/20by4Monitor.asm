@@ -37,10 +37,10 @@ mainLoop
     inc e 
     dec e    
     jr z, mainLoop
-    call displayChar
+    call displayChar    
     jr mainLoop
     
-    halt
+    halt   ; should never reach this
           
 writeTextToDisplay:    ; this always prints the contnets of DisplayBuffer
     ld hl, DisplayBuffer
@@ -73,22 +73,42 @@ displayChar
     ret    
    
     
-arduinoInputScan
-    ld c,keypadInOutPort  ;Port address
-    ld a,1      ; bit zero on out port
-
-    ld c, keypadInOutPort    
-    out (c), a    ; output 1 on the ready to rx pin
+arduinoInputScan  
+    call giveArduinoAChance_1
+    call giveArduinoAChance_1
+    call giveArduinoAChance_1
+    call giveArduinoAChance_1
+    call giveArduinoAChance_1
+    call giveArduinoAChance_1
     
-    call delaySome ; wait a bit because the arduino code is slower
-    ; call delaySome ; wait a bit because the arduino code is slower
-    ; call delaySome ; wait a bit because the arduino code is slower
-    
-    in e, (c)     ; read in 1 byte into e from the keyboard port (now used as arduino
-
-    xor a
-    out (c), a    ; set ready rx pin to off
+    call giveArduinoAChance_2
+    call giveArduinoAChance_2
+    call giveArduinoAChance_2
+    call giveArduinoAChance_2
+    call giveArduinoAChance_2
+    call giveArduinoAChance_2
     ret
+    
+giveArduinoAChance_1
+    ld c, keypadInOutPort    
+    ld a,1      ; bit zero on out port    
+    ld b, 255    
+giveChanceLoop1    
+    out (c), a    ; output 1 on the ready to rx pin    
+    in e, (c)     ; read in 1 byte into e from the keyboard port (now used as arduino "keyboard emulator"
+    djnz giveChanceLoop1
+    ret
+
+giveArduinoAChance_2
+    ld c, keypadInOutPort   
+    xor a
+    ld b, 255
+giveChanceLoop2
+    out (c), a    ; set ready rx pin to off
+    djnz giveChanceLoop2
+    ret
+
+
     
 delaySome:    
     push bc    ; preserve bc register
