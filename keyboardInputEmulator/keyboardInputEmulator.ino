@@ -7,6 +7,7 @@ volatile bool risingEdge = false;
 volatile bool fallingEdge = false;
 
 #define WAIT_TX_PIN 2
+#define START_OF_TEXT_ASCII 2
 
 
 void setup()
@@ -53,39 +54,24 @@ void loop()
   char charBuffer = 0;
   if (risingEdge == false)
   {
+      sendChar(START_OF_TEXT_ASCII);
       sendChar('>');
   }
 
   while (1)
   {
-    /*
-    if (risingEdge == false)
-    {
-      sendChar('H');
-      sendChar('E');
-      sendChar('L');
-      sendChar('L');
-      sendChar('O');
-      sendChar('W');
-      sendChar('O');
-      sendChar('R');
-      sendChar('L');
-      sendChar('D');
-      sendChar('!');
-      sendChar(' ');
-    }
-  }
-  */
-
-
     if (Serial.available() > 0)
     {
       charBuffer = Serial.read();
       if (charBuffer != '\n')
       {
-        sendChar(charBuffer);
-       
+        sendChar(charBuffer);       
       }
+      if (charBuffer =='`')
+      {
+        sendChar(START_OF_TEXT_ASCII);     
+        sendChar('>');  
+      }      
       Serial.print(charBuffer);      
     }
   }

@@ -10,7 +10,8 @@
 #define SIZE_OF_SYSTEM_VARIABLES $0004
 #define STACK_BOTTOM $ffff
 #define RAM_START $8000  
-#define DISPLAY_COLS 19
+#define DISPLAY_COLS 18
+#define START_OF_TEXT_ASCII 2
 
 ;; port definitions
 #define lcdRegisterSelectCommand $00   ; all zero address including line 0 which is connected to the LCD  ReadSelect (RS) pin 
@@ -28,8 +29,8 @@
     ld (currentDisplayCol), a
     
     xor a
-    ld (rowcount), a
-    ld (rowcount+1), a
+    ld (rowCount), a    
+    ld (charCount), a
     
 mainLoop  
     call arduinoInputScan
@@ -37,7 +38,14 @@ mainLoop
     inc e 
     dec e    
     jr z, mainLoop
-    call displayChar    
+    ld a, e
+    cp START_OF_TEXT_ASCII
+    push af
+    push de
+    call z, initialiseLCD    
+    pop de
+    pop af
+    call nz, displayChar    
     jr mainLoop
     
     halt   ; should never reach this
@@ -69,6 +77,69 @@ displayChar
     call waitLCD
     ld a, e
     out (lcdRegisterSelectData), a
+    
+    ld a, (charCount)
+    inc a
+    ld (charCount), a
+    cp 18    
+    jr z, doCarridgeReturn    
+    jr endOfDisplayChar
+    
+doCarridgeReturn
+    xor a
+    ld (charCount), a
+    ld a, (rowCount)
+    inc a
+    ld (rowCount), a
+    cp 4
+    jr z, jumpToTopRow
+    cp 3
+    jr z, jumpRow3Row
+    cp 2
+    jr z, jumpRow2Row
+    cp 1
+    jr z, jumpRow1Row    
+    jr endOfDisplayChar
+
+;Row	DDRAM Start Address	Set DDRAM Command (Hex)
+;0	0x00	0x80   (after oring with 0x80)
+;1	0x40	0xC0
+;2	0x14	0x94
+;3	0x54	0xD4
+
+jumpRow3Row
+    xor a
+    ld (charCount), a
+    call waitLCD
+    ld a, $d4 
+    out (lcdRegisterSelectCommand), a     ; Send command to LCD  
+
+    jr endOfDisplayChar   
+jumpRow2Row    
+    xor a
+    ld (charCount), a
+    call waitLCD
+    ld a, $94 
+    out (lcdRegisterSelectCommand), a     ; Send command to LCD  
+
+    jr endOfDisplayChar
+jumpRow1Row    
+    xor a
+    ld (charCount), a
+    call waitLCD
+    ld a, $c0 
+    out (lcdRegisterSelectCommand), a     ; Send command to LCD  
+    
+    jr endOfDisplayChar
+jumpToTopRow    
+    xor a
+    ld (rowCount), a
+    ld (charCount), a   
+    call waitLCD    
+    ld a, $80 
+    out (lcdRegisterSelectCommand), a     ; Send command to LCD      
+    
+endOfDisplayChar    
     pop af    
     ret    
    
@@ -136,6 +207,9 @@ loopLCDInitCommands
     inc hl
     jp loopLCDInitCommands    
 initialiseLCD_ret    
+    xor a
+    ld (rowCount), a    
+    ld (charCount), a
     ret
 
 ;;; "generic" display code
@@ -282,8 +356,10 @@ TestMessageRow3
     .db "3333",$ff    
 TestMessageRow4    
     .db "4444",$ff    
-rowcount
-    .dw $0000
+rowCount
+    .db 0
+charCount
+    .db 0    
 DisplayBufferProtectZone
     .db "                                             "
         
