@@ -10,7 +10,7 @@
 #define SIZE_OF_SYSTEM_VARIABLES $0004
 #define STACK_BOTTOM $ffff
 #define RAM_START $8000  
-#define DISPLAY_COLS 18
+#define DISPLAY_COLS 20
 #define START_OF_TEXT_ASCII 2
 
 ;; port definitions
@@ -39,9 +39,9 @@ mainLoop
     dec e    
     jr z, mainLoop
     ld a, e
-    cp START_OF_TEXT_ASCII
+    cp START_OF_TEXT_ASCII   
     push af
-    push de
+    push de    
     call z, initialiseLCD    
     pop de
     pop af
@@ -81,14 +81,16 @@ displayChar
     ld a, (charCount)
     inc a
     ld (charCount), a
-    cp 18    
+    
+    ld a, (charCount)
+    cp DISPLAY_COLS
     jr z, doCarridgeReturn    
     jr endOfDisplayChar
     
 doCarridgeReturn
     xor a
     ld (charCount), a
-    ld a, (rowCount)
+    ld a, (rowCount)    
     inc a
     ld (rowCount), a
     cp 4
@@ -355,14 +357,9 @@ TestMessageRow2
 TestMessageRow3    
     .db "3333",$ff    
 TestMessageRow4    
-    .db "4444",$ff    
-rowCount
-    .db 0
-charCount
-    .db 0    
+    .db "4444",$ff      
 DisplayBufferProtectZone
-    .db "                                             "
-        
+    .db "                                             "        
 DisplayBuffer    ; this is big enough to fit one complete row, $ff terminates
     .db "*****************",$ff,$ff,$ff,$ff,$ff,$ff,$ff
 DisplayBufferProtectZone2
@@ -375,5 +372,9 @@ currentDisplayCol
     .db $00   
 to_print:
     .dw $0000
+rowCount
+    .db 0
+charCount
+    .db 0    
 #END
 
