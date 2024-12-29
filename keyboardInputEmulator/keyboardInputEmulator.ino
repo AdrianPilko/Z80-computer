@@ -8,7 +8,7 @@ volatile bool fallingEdge = false;
 
 #define WAIT_TX_PIN 2
 #define START_OF_TEXT_ASCII 2
-
+#define BUFFER_SIZE 32
 
 void setup()
 {
@@ -51,7 +51,13 @@ void sendChar(char theChar)
 
 void loop()
 {
-  char charBuffer = 0;
+  char buffer[BUFFER_SIZE];  
+  uint8_t bufferWritePtr = 0;
+  uint8_t bufferReadPtr = 0;
+  uint8_t bufferLevel = 0;
+
+  memset (buffer, 0, sizeof(char) * BUFFER_SIZE);
+
   if (risingEdge == false)
   {
       sendChar(START_OF_TEXT_ASCII);
@@ -62,17 +68,41 @@ void loop()
   {
     if (Serial.available() > 0)
     {
-      charBuffer = Serial.read();
-      if (charBuffer != '\n')
+      buffer[bufferWritePtr] = Serial.read();
+      bufferWritePtr++;
+      bufferLevel++;
+      if (bufferWritePtr >= BUFFER_SIZE)
       {
-        sendChar(charBuffer);       
+        bufferWritePtr = 0;
       }
-      if (charBuffer =='`')
+    }
+
+    if (bufferLevel > 0)
+    {
+      if (buffer[bufferReadPtr] != '\n')
+      {
+        sendChar(buffer[bufferReadPtr]);       
+      }
+      if (buffer[bufferReadPtr] =='`')
       {
         sendChar(START_OF_TEXT_ASCII);     
         sendChar('>');  
       }      
-      Serial.print(charBuffer);      
+      Serial.print(buffer[bufferReadPtr]);   
+      //Serial.print("level=");
+      //Serial.println(bufferLevel);
+      //Serial.print("read=");
+      //Serial.println(bufferReadPtr);
+      //Serial.print("write=");
+      //Serial.println(bufferWritePtr);
+
+
+      bufferLevel--;      
+      bufferReadPtr++;
+      if (bufferReadPtr >= BUFFER_SIZE)
+      {
+        bufferReadPtr = 0;
+      }
     }
   }
 }
