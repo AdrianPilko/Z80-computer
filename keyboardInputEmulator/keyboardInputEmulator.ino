@@ -79,15 +79,19 @@ void loop()
 
     if (bufferLevel > 0)
     {
-      if (buffer[bufferReadPtr] != '\n')
+      if (buffer[bufferReadPtr] == '\n')
       {
-        sendChar(buffer[bufferReadPtr]);       
+        sendChar(0x0d);       
       }
-      if (buffer[bufferReadPtr] =='`')
+      else if (buffer[bufferReadPtr] =='`')
       {
         sendChar(START_OF_TEXT_ASCII);     
         sendChar('>');  
-      }      
+      }   
+      else
+      {
+        sendChar(buffer[bufferReadPtr]);
+      }   
       Serial.print(buffer[bufferReadPtr]);   
       //Serial.print("level=");
       //Serial.println(bufferLevel);

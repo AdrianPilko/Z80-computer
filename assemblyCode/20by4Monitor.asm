@@ -23,14 +23,18 @@
     ld  sp , STACK_BOTTOM 
     
     call initialiseLCD
-
-    xor a
-    ld (currentDisplayRow), a
-    ld (currentDisplayCol), a
     
     xor a
     ld (rowCount), a    
     ld (charCount), a
+    
+resetBasicMemory
+    ld hl, basicProgramMemory
+    ld (programMemoryPtr), hl
+    
+    ld hl, commandBuffer
+    ld (commandBufferPtr), hl    
+    
     
 mainLoop  
     call arduinoInputScan
@@ -39,13 +43,27 @@ mainLoop
     dec e    
     jr z, mainLoop
     ld a, e
-    cp START_OF_TEXT_ASCII   
     push af
-    push de    
-    call z, initialiseLCD    
-    pop de
+        cp START_OF_TEXT_ASCII       
+        call z, initialiseLCD            
     pop af
-    call nz, displayChar    
+        cp START_OF_TEXT_ASCII 
+        jr z, mainLoop
+        
+    push af    
+        cp $0D  ; carridge return ASCII code
+        call z, doCarridgeReturnEnteringCommand
+    pop af
+        cp $0D
+        jr z, mainLoop
+    push af
+        cp 0    
+        call nz, displayChar              ; echo the character to the lcd
+    pop af
+    push af
+        cp 0 ; don't really need this because we push'd af
+        call nz, storeCommandInBuffer     ; store the char in the command buffer
+    pop af
     jr mainLoop
     
     halt   ; should never reach this
@@ -74,19 +92,30 @@ copyToDisplayBuffer_hl_b:
 
 displayChar
     push af
-    call waitLCD
-    ld a, e
-    out (lcdRegisterSelectData), a
+        call waitLCD
+        ld a, e
+        out (lcdRegisterSelectData), a
+        
+        ld a, (charCount)
+        inc a
+        ld (charCount), a
+        
+        ld a, (charCount)
+        cp DISPLAY_COLS
+        call z, doCarridgeReturn    
+    pop af    
+    ret    
     
-    ld a, (charCount)
-    inc a
-    ld (charCount), a
     
-    ld a, (charCount)
-    cp DISPLAY_COLS
-    jr z, doCarridgeReturn    
-    jr endOfDisplayChar
+enterCommand    
+
+;; code here to store current line, then do a CR
+      
     
+endOfenterCommand    
+    ret 
+
+
 doCarridgeReturn
     xor a
     ld (charCount), a
@@ -101,7 +130,7 @@ doCarridgeReturn
     jr z, jumpRow2Row
     cp 1
     jr z, jumpRow1Row    
-    jr endOfDisplayChar
+    jr endOfCR
 
 ;Row	DDRAM Start Address	Set DDRAM Command (Hex)
 ;0	0x00	0x80   (after oring with 0x80)
@@ -112,39 +141,106 @@ doCarridgeReturn
 jumpRow3Row
     xor a
     ld (charCount), a
-    call waitLCD
-    ld a, $d4 
-    out (lcdRegisterSelectCommand), a     ; Send command to LCD  
-
-    jr endOfDisplayChar   
+    ld b, $54
+    ld c, 0
+    call setLCDRowCol_bc
+    jr endOfCR   
 jumpRow2Row    
     xor a
     ld (charCount), a
-    call waitLCD
-    ld a, $94 
-    out (lcdRegisterSelectCommand), a     ; Send command to LCD  
-
-    jr endOfDisplayChar
+    ld b, $14 
+    ld c, 0
+    call setLCDRowCol_bc
+    jr endOfCR 
 jumpRow1Row    
     xor a
     ld (charCount), a
-    call waitLCD
-    ld a, $c0 
-    out (lcdRegisterSelectCommand), a     ; Send command to LCD  
-    
-    jr endOfDisplayChar
+    ld b, $40 
+    ld c, 0
+    call setLCDRowCol_bc
+    jr endOfCR
 jumpToTopRow    
     xor a
     ld (rowCount), a
     ld (charCount), a   
-    call waitLCD    
-    ld a, $80 
-    out (lcdRegisterSelectCommand), a     ; Send command to LCD      
+    ld b, $00
+    ld c, 0
+    call setLCDRowCol_bc    
+    call initialiseLCD   ; clears LCD
+endOfCR    
+    ret
     
-endOfDisplayChar    
-    pop af    
-    ret    
-   
+    
+doCarridgeReturnEnteringCommand
+    ld hl, commandBuffer
+    ld a, (hl)
+    cp 'L'    ; checking for LIST
+    jr nz, checkForRun
+checkList1_DCREC    
+    inc hl
+    ld a, (hl)
+    cp 'I'
+    jr z, checkList2_DCREC
+    jr endOf_DCREC
+checkList2_DCREC    
+    inc hl
+    ld a, (hl)
+    cp 'S'
+    jr z, checkList3_DCREC    
+    jr endOf_DCREC     
+checkList3_DCREC    
+    inc hl
+    ld a, (hl)
+    cp 'T'
+    call z, listBasicProgram
+    jr endOf_DCREC         
+;;;;;;;;;;;;;;;;; We might have to rumn the basic code
+checkForRun
+    cp 'R'
+    jr z, checkRun1_DCREC
+    jr endOf_DCREC
+checkRun1_DCREC    
+    inc hl
+    ld a, (hl)
+    cp 'U'
+    jr z, checkRun2_DCREC
+    jr endOf_DCREC
+checkRun2_DCREC    
+    inc hl
+    ld a, (hl)
+    cp 'N'
+    call z, runBasicProgram
+    jr endOf_DCREC     
+    
+endOf_DCREC    
+    ld hl, commandBuffer   ; reset the command buffer pointer
+    ld (commandBufferPtr), hl   
+    call doCarridgeReturn
+    ret
+    
+runBasicProgram   ; for now just print r,  not ready to actually do anything
+    ld a, 'r'
+    call displayChar
+    ret
+    
+listBasicProgram  ; for now just print l, not ready to actually do anything
+    ld a, 'l'
+    call displayChar
+    ret
+
+storeCommandInBuffer  ; the byte to store is in reg "a"
+    ;; first check if we have a keyword to execute in buffer
+    ld hl, commandBufferPtr
+    ld (hl), a
+    inc hl    ; move buffer pointer on
+    ld (commandBufferPtr), hl
+    
+
+   ; ld hl,(programMemoryPtr)
+   ; ld de, basicProgramMemory
+   ; add hl, de
+    ret
+    
     
 arduinoInputScan  
     call giveArduinoAChance_1
@@ -349,32 +445,38 @@ RowAddresses:
     .db $00,$40,$14,$54
 BootMessage:
     .db "Z80 byteForever",$ff    
-
 TestMessageRow1
     .db "Hello,World!",$ff    
 TestMessageRow2   
     .db "ByteForever",$ff        
-TestMessageRow3    
-    .db "3333",$ff    
-TestMessageRow4    
-    .db "4444",$ff      
-DisplayBufferProtectZone
-    .db "                                             "        
 DisplayBuffer    ; this is big enough to fit one complete row, $ff terminates
     .db "*****************",$ff,$ff,$ff,$ff,$ff,$ff,$ff
-DisplayBufferProtectZone2
-    .db "                                             "    
-;;; ram variables    
+
+;;; ram variables - anything you want to be non-constant!
     .org RAM_START
-currentDisplayRow
-    .db $00
-currentDisplayCol
-    .db $00   
-to_print:
+to_print
     .dw $0000
 rowCount
     .db 0
 charCount
-    .db 0    
+    .db 0
+programMemoryPtr
+    .dw $0000
+commandBufferPtr
+    .dw $0000    
+commandBuffer
+    .db "                                                                                                    "    
+basicProgramMemory
+    .db "                                                                                                    "
+    .db "                                                                                                    "
+    .db "                                                                                                    "
+    .db "                                                                                                    "
+    .db "                                                                                                    "
+    .db "                                                                                                    "
+    .db "                                                                                                    "
+    .db "                                                                                                    "
+    .db "                                                                                                    "
+    .db "                                                                                                    "
+
 #END
 

@@ -6,6 +6,7 @@ del *.hex
 del *.obj
 del *.bin
 
+tasm -version
 set "base_filename=20by4Monitor"
 
 call zxasm %base_filename%
