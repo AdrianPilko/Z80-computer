@@ -125,7 +125,8 @@ printProgramStorePtr
     
 viewMemory
     call initialiseLCD
-    ld hl, $8000    
+    ld hl, $8000  
+viewMemory_repeat
     ld b, 4
 allRowsLoop    
     push bc
@@ -152,6 +153,22 @@ viewMemoryLoopRow
         pop hl
     pop bc 
     djnz allRowsLoop
+    
+waitForUserPressViewMoreOrExit
+    
+    call arduinoInputScan
+    ;; e now contains the byte read in if any, could be zero
+    inc e 
+    dec e    
+    jr z, waitForUserPressViewMoreOrExit
+    ld a, e
+    
+    cp 'V'  ; print next 16 bytes
+    jp z, viewMemory_repeat
+    cp 'E'  ; exit back
+    jp z, exitViewMemory
+    jp waitForUserPressViewMoreOrExit
+exitViewMemory    
     ret
     
 copyToDisplayBuffer_hl_b:    
@@ -531,6 +548,32 @@ ConvertToASCII_ret:
         
     ret              ; return from subroutine
     
+codeToDisplayHelloWorldManually
+    ld e, 'H'
+    call displayChar
+    ld e, 'E'
+    call displayChar
+    ld e, 'L'
+    call displayChar
+    ld e, 'L'
+    call displayChar
+    ld e, 'O'
+    call displayChar
+    ld e, ','
+    call displayChar
+    ld e, 'W'
+    call displayChar
+    ld e, 'O'
+    call displayChar
+    ld e, 'R'
+    call displayChar
+    ld e, 'L'
+    call displayChar
+    ld e, 'D'
+    call displayChar
+    ld e, '!'
+    call displayChar
+    jp mainLoop
 
 ;;; rom "constants"
 

@@ -1,12 +1,18 @@
-code to display a has and then halt can be sent over serial to arduino then on to z80 computer via my own "interface"
-DB000738FB
-3E48D301
-DB000738FB
-3E45D301
-DB000738FB
-3E4CD301
-DB000738FB
-3E4CD301
-DB000738FB
-3E4FD301
-76
+code to display a has and then halt can be sent over serial to arduino then on to z80 computer via my own "interface". appears best if send these using putty and one line at a time
+
+(uses rom code displayChar)
+
+1E48CDEF00
+1E45CDEF00
+1E4CCDEF00
+1E4CCDEF00
+1E4FCDEF00
+1E2CCDEF00
+
+1E57CDEF00
+1E4FCDEF00
+1E52CDEF00
+1E4CCDEF00
+1E44CDEF00
+1E21CDEF00
+C31B00
