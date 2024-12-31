@@ -13,7 +13,7 @@ volatile bool fallingEdge = false;
 #define END_OF_TEXT_ASCII 3
 // this is not normal ascii at this point
 #define HALT_COMPUTER 4  
-#define BUFFER_SIZE 32
+#define BUFFER_SIZE 128
 
 void setup()
 {
