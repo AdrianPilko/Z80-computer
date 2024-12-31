@@ -29,10 +29,6 @@ softReset
     
     call initialiseLCD
     
-    xor a
-    ld (rowCount), a    
-    ld (charCount), a
-    
     ld hl, $8000    ;bootCode location
     ld (bootCodePtr), hl    
     
@@ -71,6 +67,13 @@ mainLoop
     pop af   
         cp 'V'
         jr z, mainLoop    ; this double compare to skip is a bit cumbersome and I will it 
+
+        cp 'P'            ; print the current program store pointer
+    push af        
+        call z, printProgramStorePtr            
+    pop af   
+        cp 'P'
+        jr z, mainLoop    ; this double compare to skip is a bit cumbersome and I will it 
         cp 'R'
         jr nz, carryOnLoadingCode
         jr z, runTheCode
@@ -94,28 +97,36 @@ haltComputer
     halt   
           
 writeTextToDisplay:    ; this always prints the contnets of DisplayBuffer
-    ld hl, DisplayBuffer
-    ld bc, 19
+    
 WriteRow:           
-    push bc
-        push hl       
-            call waitLCD
-        pop hl
-        ld a, (hl)
-        out (lcdRegisterSelectData), a
-        inc hl
-    pop bc
-    djnz WriteRow 
+    call waitLCD
+    ld a, (hl)
+    cp $ff
+    jr z, endWriteRow
+    out (lcdRegisterSelectData), a
+    inc hl
+    jr WriteRow
+endWriteRow    
+    ret
+    
+printProgramStorePtr  
+    call doCarridgeReturn
+    ld hl, programStorePtrtext
+    call writeTextToDisplay
+    
+    ld hl, (bootCodePtr)
+    ld ($to_print), hl
+    call hexprint16
+    call doCarridgeReturn
     ret
     
 viewMemory
-
-    ld hl, $8000
-    
+    call initialiseLCD
+    ld hl, $8000    
     push hl    
         ld ($to_print), hl
         call hexprint16    
-        ld a, ':'         ; lets have a colon in between the memory address and the rest
+        ld e, ':'         ; lets have a colon in between the memory address and the rest
         call displayChar
     pop hl
     ld b, 4
@@ -124,6 +135,10 @@ viewMemoryLoopRow
         ld a, (hl)
         call hexprint8
         inc hl
+        push hl
+            ld e, '-'         ; lets have a colon in between the memory address and the rest
+            call displayChar
+        pop hl
     pop bc 
     djnz viewMemoryLoopRow
 
@@ -260,13 +275,15 @@ storeBootCode  ; the byte to store is in reg "a"
     ;; we first need to convert the ascii to a number between 0 and 255 (0 to ff)
     ld (ascii_char_to_convert), a
     call ascii_convert_to_hex_char
+
+
+;;; 
+;;;  
+;;; this needs code to store just a nibble - 4bits at a time as that's how they're being fed in as single digits
+;;; in other words, this code will only store 0 to f in each memory location not 0 to ff
+
     
-    ld a, (bootCodePtr)     ; "derefference the memory pointer to the boot code
-    ld e, a
-    ld a, (bootCodePtr+1)
-    ld d, a
-    push de
-    pop hl
+    ld hl, (bootCodePtr)     ; "derefference the memory pointer to the boot code
     ld (hl), a
     
     ld a, (ascii_convert_result)
@@ -341,7 +358,7 @@ waitLoopAfterKeyFound22:
  
       
   
-initialiseLCD:
+initialiseLCD:  
     ld hl,InitCommandList
     call waitLCD
 loopLCDInitCommands
@@ -514,7 +531,8 @@ TestMessageRow2
     .db "ByteForever",$ff        
 DisplayBuffer    ; this is big enough to fit one complete row, $ff terminates
     .db "*****************",$ff,$ff,$ff,$ff,$ff,$ff,$ff
-
+programStorePtrtext
+    .db "store loc=",$ff
 ;;; ram variables - anything you want to be non-constant!
     .org RAM_START    
 ; with the architecture of the computer in mind, anything after here is by 
