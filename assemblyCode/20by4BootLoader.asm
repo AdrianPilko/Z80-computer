@@ -65,6 +65,12 @@ mainLoop
     pop af
         cp $0D
         jr z, mainLoop
+        cp 'V'
+    push af        
+        call z, viewMemory             ; currently this just displays the first 4 * 4 bytes
+    pop af   
+        cp 'V'
+        jr z, mainLoop    ; this double compare to skip is a bit cumbersome and I will it 
         cp 'R'
         jr nz, carryOnLoadingCode
         jr z, runTheCode
@@ -100,6 +106,27 @@ WriteRow:
         inc hl
     pop bc
     djnz WriteRow 
+    ret
+    
+viewMemory
+
+    ld hl, $8000
+    
+    push hl    
+        ld ($to_print), hl
+        call hexprint16    
+        ld a, ':'         ; lets have a colon in between the memory address and the rest
+        call displayChar
+    pop hl
+    ld b, 4
+viewMemoryLoopRow
+    push bc
+        ld a, (hl)
+        call hexprint8
+        inc hl
+    pop bc 
+    djnz viewMemoryLoopRow
+
     ret
     
 copyToDisplayBuffer_hl_b:    
