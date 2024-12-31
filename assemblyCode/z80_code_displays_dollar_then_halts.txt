@@ -1,0 +1,2 @@
+code to display a has and then halt can be sent over serial to arduino then on to z80 computer via my own "interface"
+DB000738FB3E24D30176

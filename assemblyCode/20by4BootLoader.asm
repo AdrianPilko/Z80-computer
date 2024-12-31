@@ -82,7 +82,7 @@ mainLoop
         jr z, runTheCode
 runTheCode        
         call displayStar   ;; shows code has started
-        jp z, RAM_START   ; this is where it gets interesting, we're now going to run the code that was placed in bootCode                                   
+        jp RAM_START   ; this is where it gets interesting, we're now going to run the code that was placed in bootCode                                   
         ;; reset the bootCodePtr to go again     
         ld hl, RAM_START
         ld (bootCodePtr), hl         
@@ -126,25 +126,32 @@ printProgramStorePtr
 viewMemory
     call initialiseLCD
     ld hl, $8000    
-    push hl    
-        ld ($to_print), hl
-        call hexprint16    
-        ld e, ':'         ; lets have a colon in between the memory address and the rest
-        call displayChar
-    pop hl
     ld b, 4
-viewMemoryLoopRow
+allRowsLoop    
     push bc
-        ld a, (hl)
-        call hexprint8
-        inc hl
-        push hl
-            ld e, '-'         ; lets have a colon in between the memory address and the rest
+        push hl    
+            ld ($to_print), hl
+            call hexprint16    
+            ld e, ':'         ; lets have a colon in between the memory address and the rest
             call displayChar
         pop hl
+        ld b, 4
+viewMemoryLoopRow
+        push bc
+            ld a, (hl)
+            call hexprint8
+            inc hl
+            push hl
+                ld e, '-'         ; lets have a colon in between the memory address and the rest
+                call displayChar
+            pop hl
+        pop bc 
+        djnz viewMemoryLoopRow
+        push hl
+            call doCarridgeReturn
+        pop hl
     pop bc 
-    djnz viewMemoryLoopRow
-
+    djnz allRowsLoop
     ret
     
 copyToDisplayBuffer_hl_b:    
