@@ -1,6 +1,8 @@
 #include "Wire.h"
-#define MCP23017_ADDRESS 0x27 // Default I2C address of MCP23017
-#define MCP23017_OLATA   0x14 // Register address for GPIOA output latch
+ // Default I2C address of MCP23017
+#define MCP23017_ADDRESS 0x27
+// Register address for GPIOA output latch
+#define MCP23017_OLATA   0x14 
 
 
 volatile bool risingEdge = false;
@@ -8,6 +10,9 @@ volatile bool fallingEdge = false;
 
 #define WAIT_TX_PIN 2
 #define START_OF_TEXT_ASCII 2
+#define END_OF_TEXT_ASCII 3
+// this is not normal ascii at this point
+#define HALT_COMPUTER 4  
 #define BUFFER_SIZE 32
 
 void setup()
@@ -61,7 +66,6 @@ void loop()
   if (risingEdge == false)
   {
       sendChar(START_OF_TEXT_ASCII);
-      sendChar('>');
   }
 
   while (1)
@@ -81,25 +85,27 @@ void loop()
     {
       if (buffer[bufferReadPtr] == '\n')
       {
-        sendChar(0x0d);       
+        //sendChar(0x0d);       ; in boot  mode don't want this  
       }
-      else if (buffer[bufferReadPtr] =='`')
+      else if (buffer[bufferReadPtr] =='`')    // on most keyboards the key yto the left of 1
       {
         sendChar(START_OF_TEXT_ASCII);     
-        sendChar('>');  
       }   
+      else if (buffer[bufferReadPtr] == '*')    
+      {
+        sendChar(END_OF_TEXT_ASCII);   
+        Serial.print("Sent end of text=");
+        Serial.println(END_OF_TEXT_ASCII);        
+      } 
+      else if (buffer[bufferReadPtr] == '|')    
+      {
+        sendChar(HALT_COMPUTER);     
+      } 
       else
       {
         sendChar(buffer[bufferReadPtr]);
       }   
       Serial.print(buffer[bufferReadPtr]);   
-      //Serial.print("level=");
-      //Serial.println(bufferLevel);
-      //Serial.print("read=");
-      //Serial.println(bufferReadPtr);
-      //Serial.print("write=");
-      //Serial.println(bufferWritePtr);
-
 
       bufferLevel--;      
       bufferReadPtr++;
@@ -110,7 +116,6 @@ void loop()
     }
   }
 }
-
 
 void handleInterrupt()
 {
