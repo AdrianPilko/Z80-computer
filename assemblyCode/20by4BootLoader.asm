@@ -29,12 +29,15 @@ softReset
     
     call initialiseLCD
     
+    
+    
     ld hl, $8000    ;bootCode location
     ld (bootCodePtr), hl    
     
     ld a, $c3                 ; edffectively a jp,0x0 and so a soft reset
     ld (backstopReset), a
     xor a
+    ld (oddEvenNibble), a    
     ld (backstopReset+1), a    
     ld (backstopReset+2), a
     
@@ -275,34 +278,56 @@ storeBootCode  ; the byte to store is in reg "a"
     ;; we first need to convert the ascii to a number between 0 and 255 (0 to ff)
     ld (ascii_char_to_convert), a
     call ascii_convert_to_hex_char
+    
+    ld a, (oddEvenNibble)
+    cp 0
+    jr z, loadFirstTime   ; is zero
+    jr nz, loadNextNibbleAndIncCodePtr   ;; else it must be 1 
 
-
-;;; 
-;;;  
-;;; this needs code to store just a nibble - 4bits at a time as that's how they're being fed in as single digits
-;;; in other words, this code will only store 0 to f in each memory location not 0 to ff
-
+loadNextNibbleAndIncCodePtr    
+    xor a
+    ld (oddEvenNibble), a
     
     ld hl, (bootCodePtr)     ; "derefference the memory pointer to the boot code
-    ld (hl), a
     
-    ld a, (ascii_convert_result)
+    ; load current memory contents into a 
+    ld a, (hl)
+       
+    ; rotate left a 4bits
+    rlca
+    rlca
+    rlca
+    rlca
+    ; zero the lower 4 bits
+    and $f0
+    ld b, a   ; store a         
+    ld a, (ascii_convert_result)    
+    or b
+    ld (hl), a    
     inc hl    ; move buffer pointer on
     ld (bootCodePtr), hl
-
-;; print out current program pointer    
-    dec hl   ; get back to previous
+    jr printCurrentAddressAndMemory
+loadFirstTime
+    ld a, 1
+    ld (oddEvenNibble), a        
     
+    ld hl, (bootCodePtr) 
+    ld a, (ascii_convert_result)  
+    and $0f
+    ld (hl), a     
+    inc hl
+    
+printCurrentAddressAndMemory
+;; print out current program pointer       
+    dec hl
     push af
-        push hl    
-            ld hl, (bootCodePtr)
-            ld ($to_print), hl
-            call hexprint16
-        pop hl
+        ld hl, (bootCodePtr)
+        ld ($to_print), hl
+        call hexprint16
     pop af
     call hexprint8
     call doCarridgeReturn
-      
+endOfStoreCode    
     ret
     
     
@@ -542,9 +567,10 @@ bootCode
     .db 0    ; only define one byte here and use the .org command to move everything else after down
     .org AFTER_BOOT_CODE
 backstopReset
-    .db 0       ; put a return in here, might help if the boot code runs off
+    .db 0       ;; these are setup in the initialization code
     .dw $0000
-
+oddEvenNibble
+    .db 0
 ascii_char_to_convert
     .db 0   
 ascii_convert_result
