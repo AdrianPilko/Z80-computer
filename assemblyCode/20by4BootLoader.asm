@@ -40,6 +40,7 @@ softReset
     ld (oddEvenNibble), a    
     ld (backstopReset+1), a    
     ld (backstopReset+2), a
+    ld (posInAddress), a
     
 mainLoop  
     call arduinoInputScan
@@ -69,6 +70,13 @@ mainLoop
         call z, viewMemory             ; currently this just displays the first 4 * 4 bytes
     pop af   
         cp 'V'
+        jr z, mainLoop    ; this double compare to skip is a bit cumbersome and I will it 
+
+        cp 'S'            ; change start address for entering code
+    push af        
+        call z, setStartAddress             
+    pop af   
+        cp 'S'
         jr z, mainLoop    ; this double compare to skip is a bit cumbersome and I will it 
 
         cp 'P'            ; print the current program store pointer
@@ -113,8 +121,18 @@ endWriteRow
     ret
     
 printProgramStorePtr  
-    call doCarridgeReturn
+    call initialiseLCD
     ld hl, programStorePtrtext
+    call writeTextToDisplay
+    
+    ld hl, (bootCodePtr)
+    ld ($to_print), hl
+    call hexprint16
+    call doCarridgeReturn
+    ret
+
+printNewProgramStorePtr
+    ld hl, programStorePtrNewtext
     call writeTextToDisplay
     
     ld hl, (bootCodePtr)
@@ -296,6 +314,130 @@ invalid:
     ret
 
 
+setStartAddress
+    call printProgramStorePtr    
+    call displayHash
+    ;; the next 4 characters sent over from arduino are the 16bit address
+    xor a
+    ld (oddEvenNibble), a
+    ld b, 2
+noAddressChars_1 
+    push bc
+        call arduinoInputScan
+        ;; e now contains the byte read in if any, could be zero
+        inc e 
+        dec e 
+    pop bc        
+        jr z, noAddressChars_1    
+    push bc
+
+        ld a, e
+        ld (ascii_char_to_convert), a
+
+        call ascii_convert_to_hex_char
+        ld a, (oddEvenNibble)
+        cp 0
+        jr z, setAddloadFirstTime_1   ; is zero
+        jr nz, setAddloadNextNibble_1   ;; else it must be 1 
+setAddloadFirstTime_1
+        ld a, 1
+        ld (oddEvenNibble), a        
+        ld hl, (bootCodePtr+1) 
+        ld a, (ascii_convert_result)  
+        and $0f
+        ld (hl), a  
+        call displayStar
+        jr doNextLoopSetAdd_1
+    
+setAddloadNextNibble_1
+        xor a
+        ld (oddEvenNibble), a
+        ld hl, (bootCodePtr+1)
+        ld a, (hl)    
+        ; rotate left a 4bits
+        rlca
+        rlca
+        rlca
+        rlca
+        ; zero the lower 4 bits
+        and $f0
+        ld b, a   ; store a         
+        ld a, (ascii_convert_result)    
+        or b
+        ld (bootCodePtr+1), a 
+        call displayStar
+doNextLoopSetAdd_1
+    pop bc
+    ld a, b
+    dec a
+    cp 0
+    jp z, getNextByteOffAddress
+    ld b, a
+    jp noAddressChars_1
+    
+getNextByteOffAddress
+
+    call displayHash
+    xor a
+    ld (oddEvenNibble), a
+    ld b, 2
+noAddressChars_2 
+    push bc
+        call arduinoInputScan
+        ;; e now contains the byte read in if any, could be zero
+        inc e 
+        dec e    
+    pop bc        
+        jr z, noAddressChars_2   
+    push bc  
+
+        ld a, e
+        ld (ascii_char_to_convert), a
+
+        call ascii_convert_to_hex_char
+        ld a, (oddEvenNibble)
+        cp 0
+        jr z, setAddloadFirstTime_2   ; is zero
+        jr nz, setAddloadNextNibble_2   ;; else it must be 1 
+setAddloadFirstTime_2
+        ld a, 1
+        ld (oddEvenNibble), a        
+        ld hl, (bootCodePtr) 
+        ld a, (ascii_convert_result)  
+        and $0f
+        ld (hl), a  
+        call displayAt
+        jr doNextLoopSetAdd_2
+    
+setAddloadNextNibble_2
+        xor a
+        ld (oddEvenNibble), a
+        ld hl, (bootCodePtr)
+        ld a, (hl)    
+        ; rotate left a 4bits
+        rlca
+        rlca
+        rlca
+        rlca
+        ; zero the lower 4 bits
+        and $f0
+        ld b, a   ; store a         
+        ld a, (ascii_convert_result)    
+        or b
+        ld (bootCodePtr), a 
+        call displayAt
+doNextLoopSetAdd_2
+    pop bc
+    ld a, b
+    dec a
+    cp 0
+    jp z, endOfGetProgramStoreAddress
+    ld b, a
+    jp noAddressChars_2
+
+endOfGetProgramStoreAddress   
+    call printNewProgramStorePtr
+    ret 
     
 
 storeBootCode  ; the byte to store is in reg "a"
@@ -473,6 +615,14 @@ displayStar
     pop af    
     ret
 
+displayAt
+    push af
+    call waitLCD
+    ld a, '@'
+    out (lcdRegisterSelectData), a
+    pop af    
+    ret
+
 displayHash
     push af
     call waitLCD
@@ -574,6 +724,37 @@ codeToDisplayHelloWorldManually
     ld e, '!'
     call displayChar
     jp mainLoop
+    
+codeToDisplayHappyNewYear
+    ld e, 'H'
+    call displayChar
+    ld e, 'A'
+    call displayChar
+    ld e, 'P'
+    call displayChar
+    ld e, 'P'
+    call displayChar
+    ld e, 'Y'
+    call displayChar
+    ld e, ' '
+    call displayChar
+    ld e, 'N'
+    call displayChar
+    ld e, 'E'
+    call displayChar
+    ld e, 'W'
+    call displayChar
+    ld e, ' '
+    call displayChar
+    ld e, 'Y'
+    call displayChar
+    ld e, 'E'
+    call displayChar
+    ld e, 'A'
+    call displayChar    
+    ld e, 'R'
+    call displayChar    
+    jp mainLoop    
 
 ;;; rom "constants"
 
@@ -607,7 +788,9 @@ TestMessageRow2
 DisplayBuffer    ; this is big enough to fit one complete row, $ff terminates
     .db "*****************",$ff,$ff,$ff,$ff,$ff,$ff,$ff
 programStorePtrtext
-    .db "store loc=",$ff
+    .db "store addr=",$ff
+programStorePtrNewtext
+    .db "new loc=",$ff    
 ;;; ram variables - anything you want to be non-constant!
     .org RAM_START    
 ; with the architecture of the computer in mind, anything after here is by 
@@ -620,6 +803,8 @@ backstopReset
     .db 0       ;; these are setup in the initialization code
     .dw $0000
 oddEvenNibble
+    .db 0
+posInAddress    
     .db 0
 ascii_char_to_convert
     .db 0   
