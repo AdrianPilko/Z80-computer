@@ -35,6 +35,8 @@ resetBasicMemory
     ld hl, commandBuffer
     ld (commandBufferPtr), hl    
     
+    ld hl, bootCode
+    ld (bootCodePtr), hl    
     
 mainLoop  
     call arduinoInputScan
@@ -48,21 +50,32 @@ mainLoop
         call z, initialiseLCD            
     pop af
         cp START_OF_TEXT_ASCII 
-        jr z, mainLoop
-        
+        jr z, mainLoop            
     push af    
         cp $0D  ; carridge return ASCII code
-        call z, doCarridgeReturnEnteringCommand
+        call z, doCarridgeReturn
     pop af
         cp $0D
         jr z, mainLoop
+        cp 'R'
+        jr nz, carryOnLoadingCode
+        jr z, runTheCode
+runTheCode        
+        call displayStar
+        call z, bootCode   ; this is where it gets interesting, we're now going to run the code that was placed in bootCode                                   
+        ;; reset the bootCodePtr to go again     
+        ld hl, bootCode
+        ld (bootCodePtr), hl         
+        call displayHash
+        jr mainLoop
+carryOnLoadingCode        
     push af
         cp 0    
         call nz, displayChar              ; echo the character to the lcd
     pop af
     push af
         cp 0 ; don't really need this because we push'd af
-        call nz, storeCommandInBuffer     ; store the char in the command buffer
+        call nz, storeBootCode     ; store the char in the boot code area
     pop af
     jr mainLoop
     
@@ -169,76 +182,76 @@ jumpToTopRow
     call initialiseLCD   ; clears LCD
 endOfCR    
     ret
-    
-    
-doCarridgeReturnEnteringCommand
-    ld hl, commandBuffer
-    ld a, (hl)
-    cp 'L'    ; checking for LIST
-    jr nz, checkForRun
-checkList1_DCREC    
-    inc hl
-    ld a, (hl)
-    cp 'I'
-    jr z, checkList2_DCREC
-    jr endOf_DCREC
-checkList2_DCREC    
-    inc hl
-    ld a, (hl)
-    cp 'S'
-    jr z, checkList3_DCREC    
-    jr endOf_DCREC     
-checkList3_DCREC    
-    inc hl
-    ld a, (hl)
-    cp 'T'
-    call z, listBasicProgram
-    jr endOf_DCREC         
-;;;;;;;;;;;;;;;;; We might have to rumn the basic code
-checkForRun
-    cp 'R'
-    jr z, checkRun1_DCREC
-    jr endOf_DCREC
-checkRun1_DCREC    
-    inc hl
-    ld a, (hl)
-    cp 'U'
-    jr z, checkRun2_DCREC
-    jr endOf_DCREC
-checkRun2_DCREC    
-    inc hl
-    ld a, (hl)
-    cp 'N'
-    call z, runBasicProgram
-    jr endOf_DCREC     
-    
-endOf_DCREC    
-    ld hl, commandBuffer   ; reset the command buffer pointer
-    ld (commandBufferPtr), hl   
-    call doCarridgeReturn
-    ret
-    
-runBasicProgram   ; for now just print r,  not ready to actually do anything
-    ld a, 'r'
-    call displayChar
-    ret
-    
-listBasicProgram  ; for now just print l, not ready to actually do anything
-    ld a, 'l'
-    call displayChar
+
+ascii_convert_to_hex_char
+    ld a, (ascii_char_to_convert) ; Load the ASCII character into A
+    call ascii_to_nibble ; Convert ASCII to nibble
+    ld (ascii_convert_result), a      ; Store the result in memory
+    ; Program end (halt for simplicity)
     ret
 
-storeCommandInBuffer  ; the byte to store is in reg "a"
-    ;; first check if we have a keyword to execute in buffer
-    ld hl, commandBufferPtr
+ascii_to_nibble:
+    cp '0'            ; Is it '0'-'9'?
+    jr c, check_upper ; If less, check uppercase hex
+    cp '9' + 1        ; Is it above '9'?
+    jr nc, check_upper ; If greater, check uppercase hex
+    sub '0'           ; Convert '0'-'9' to 0-9
+    ret
+
+check_upper:
+    cp 'A'            ; Is it 'A'-'F'?
+    jr c, check_lower ; If less, check lowercase hex
+    cp 'F' + 1        ; Is it above 'F'?
+    jr nc, check_lower ; If greater, check lowercase hex
+    sub 'A'           ; Convert 'A'-'F' to 0-5
+    add a, 10            ; Add 10 to get 10-15
+    ret
+
+check_lower:
+    cp 'a'            ; Is it 'a'-'f'?
+    jr c, invalid     ; If less, it's invalid
+    cp 'f' + 1        ; Is it above 'f'?
+    jr nc, invalid    ; If greater, it's invalid
+    sub 'a'           ; Convert 'a'-'f' to 0-5
+    add a, 10            ; Add 10 to get 10-15
+    ret
+
+invalid:
+    xor a             ; Return 0 if invalid input
+    ret
+
+
+    
+
+storeBootCode  ; the byte to store is in reg "a"
+    ;; we first need to convert the ascii to a number between 0 and 255 (0 to ff)
+    ld (ascii_char_to_convert), a
+    call ascii_convert_to_hex_char
+    
+    ld a, (bootCodePtr)     ; "derefference the memory pointer to the boot code
+    ld e, a
+    ld a, (bootCodePtr+1)
+    ld d, a
+    push de
+    pop hl
     ld (hl), a
-    inc hl    ; move buffer pointer on
-    ld (commandBufferPtr), hl
     
+    ld a, (ascii_convert_result)
+    inc hl    ; move buffer pointer on
+    ld (bootCodePtr), hl
 
-   ; ld hl,(programMemoryPtr)
-   ; ld de, basicProgramMemory
-   ; add hl, de
+;; print out current program pointer    
+    dec hl   ; get back to previous
+    
+    push af
+        push hl    
+            ld hl, (bootCodePtr)
+            ld ($to_print), hl
+            call hexprint16
+        pop hl
+    pop af
+    call hexprint8
+      
     ret
     
     
@@ -352,6 +365,22 @@ displayCharacter:    ; register a stores tghe character
     out (lcdRegisterSelectData), a
     ret 
 
+displayStar
+    push af
+    call waitLCD
+    ld a, '*'
+    out (lcdRegisterSelectData), a
+    pop af    
+    ret
+
+displayHash
+    push af
+    call waitLCD
+    ld a, '#'
+    out (lcdRegisterSelectData), a
+    pop af    
+    ret
+    
 hexprint16_onRight
     call waitLCD
     ld a, $80+$49        ; Set DDRAM address to start line 2 plus 5
@@ -454,6 +483,12 @@ DisplayBuffer    ; this is big enough to fit one complete row, $ff terminates
 
 ;;; ram variables - anything you want to be non-constant!
     .org RAM_START
+    
+ascii_char_to_convert
+    .db 'C'   
+ascii_convert_result
+    .db 0    
+   
 to_print
     .dw $0000
 rowCount
@@ -463,7 +498,31 @@ charCount
 programMemoryPtr
     .dw $0000
 commandBufferPtr
+    .dw $0000   
+bootCodePtr
     .dw $0000    
+bootCode     ; so we don't have to keep taking the rom out, store program code here directly when loaded from arduino
+    .db "                                                                                                    "
+    .db "                                                                                                    "
+    .db "                                                                                                    "
+    .db "                                                                                                    "
+    .db "                                                                                                    "
+    .db "                                                                                                    "
+    .db "                                                                                                    "
+    .db "                                                                                                    "
+    .db "                                                                                                    "
+    .db "                                                                                                    "
+    .db "                                                                                                    "
+    .db "                                                                                                    "
+    .db "                                                                                                    "
+    .db "                                                                                                    "
+    .db "                                                                                                    "
+    .db "                                                                                                    "
+    .db "                                                                                                    "
+    .db "                                                                                                    "
+    .db "                                                                                                    "
+    .db "                                                                                                    "
+        
 commandBuffer
     .db "                                                                                                    "    
 basicProgramMemory

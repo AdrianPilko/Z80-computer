@@ -13,7 +13,7 @@ volatile bool fallingEdge = false;
 #define END_OF_TEXT_ASCII 3
 // this is not normal ascii at this point
 #define HALT_COMPUTER 4  
-#define BUFFER_SIZE 128
+#define BUFFER_SIZE 1024
 
 void setup()
 {
@@ -57,9 +57,9 @@ void sendChar(char theChar)
 void loop()
 {
   char buffer[BUFFER_SIZE];  
-  uint8_t bufferWritePtr = 0;
-  uint8_t bufferReadPtr = 0;
-  uint8_t bufferLevel = 0;
+  uint16_t bufferWritePtr = 0;
+  uint16_t bufferReadPtr = 0;
+  uint16_t bufferLevel = 0;
 
   memset (buffer, 0, sizeof(char) * BUFFER_SIZE);
 

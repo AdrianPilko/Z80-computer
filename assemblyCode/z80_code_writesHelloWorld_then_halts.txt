@@ -1,4 +1,4 @@
-code to display a has and then halt can be sent over serial to arduino then on to z80 computer via my own "interface". appears best if send these using putty and one line at a time
+code to display a hellow world and then halt can be sent over serial to arduino then on to z80 computer via my own "interface". appears best if send these using putty and one line at a time
 
 (uses rom code displayChar)
 
@@ -8,12 +8,25 @@ code to display a has and then halt can be sent over serial to arduino then on t
 1E4CCDEF00
 1E4FCDEF00
 1E2CCDEF00
-
 1E57CDEF00
 1E4FCDEF00
 1E52CDEF00
 1E4CCDEF00
 1E44CDEF00
 1E21CDEF00
+C31B00         ;jump back to mainLoop is at 001B
 
+
+
+
+Hello,World!
+1E48CDEF001E45CDEF001E4CCDEF001E4CCDEF001E4FCDEF001E2CCDEF
+001E57CDEF001E4FCDEF001E52CDEF001E4CCDEF001E44CDEF001E21CD
+EF00C31B00VVVVEE`R
+
+Happy New Year!
+1E48CDEF001E41CDEF001E50CDEF001E50CDEF001E59CDEF00
+1E20CDEF001E4ECDEF001E45CDEF001E57CDEF001E20CDEF00
+1E59CDEF001E45CDEF001E41CDEF001E52CDEF001E21CDEF00
 C31B00
+
